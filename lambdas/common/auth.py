@@ -5,13 +5,25 @@ from lambdas.common.errors import AuthError, NotFoundError
 
 _accounts: dict[str, str] = {}
 
+# Cognito names federated users "<IdP provider_name>_<IdP sub>"; the provider
+# names are set in curbside-infrastructure cognito_idps.tf.
+_PROVIDERS = {"google": "google", "signinwithapple": "apple"}
+
+
+def _claims(event: dict) -> dict:
+    return event.get("requestContext", {}).get("authorizer", {}).get("jwt", {}).get("claims", {})
+
 
 def get_sub(event: dict) -> str:
-    claims = event.get("requestContext", {}).get("authorizer", {}).get("jwt", {}).get("claims", {})
-    sub = claims.get("sub")
+    sub = _claims(event).get("sub")
     if not sub:
         raise AuthError("Missing caller identity")
     return sub
+
+
+def get_provider(event: dict) -> str:
+    prefix = _claims(event).get("username", "").partition("_")[0].lower()
+    return _PROVIDERS.get(prefix, prefix)
 
 
 def get_account_id(event: dict) -> str:

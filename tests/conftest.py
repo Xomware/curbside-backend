@@ -52,9 +52,11 @@ def api_event(
     route: str = "POST /test",
     headers: dict | None = None,
     query: dict | None = None,
+    username: str | None = None,
 ) -> dict:
     """HTTP API payload v2.0, as delivered behind the Cognito JWT authorizer."""
-    authorizer = {"jwt": {"claims": {"sub": sub}}} if sub else {}
+    claims = {"sub": sub, "username": username or f"google_{sub}"}
+    authorizer = {"jwt": {"claims": claims}} if sub else {}
     return {
         "version": "2.0",
         "routeKey": route,
