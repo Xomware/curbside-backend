@@ -16,10 +16,10 @@ from urllib.request import Request, urlopen
 
 from lambdas.common.logger import log
 
-INSTANCES = (
-    "https://overpass-api.de/api/interpreter",
-    "https://overpass.private.coffee/api/interpreter",
-)
+# The only public instance that answered on 2026-11-17: private.coffee (also from Lambda) and
+# kumi.systems time out, mail.ru 504s, osm.jp refuses. A second try on the same
+# instance beats a dead fallback; it 502s when busy and usually recovers.
+URL = "https://overpass-api.de/api/interpreter"
 USER_AGENT = "curbside/0.1 (+https://github.com/Xomware/curbside-backend)"
 ACCESSORY_TAGS = frozenset({"garage", "garages", "shed", "carport"})
 ACCESSORY_MAX_M2 = 30
@@ -50,18 +50,17 @@ def _post(url: str, query: str) -> list[dict]:
 
 
 def fetch_buildings(lat: float, lng: float, radius_m: int) -> list[dict]:
-    """Elements from the first instance, else one retry on the second."""
+    """Elements from Overpass, retried once. 40 + 30 + 40 s fits the 120 s Lambda timeout."""
     around = f"(around:{radius_m},{lat},{lng})"
     query = (
         f'[out:json][timeout:25];(way["building"]{around};relation["building"]{around};);out geom;'
     )
     try:
-        return _post(INSTANCES[0], query)
+        return _post(URL, query)
     except OverpassError as e:
-        log.warning("overpass_failed", extra={"instance": 0, "http_status": e.status})
-        if e.status == 429:
-            sleep(30)
-    return _post(INSTANCES[1], query)
+        log.warning("overpass_failed", extra={"attempt": 1, "http_status": e.status})
+        sleep(30 if e.status == 429 else 10)
+    return _post(URL, query)
 
 
 def _coords(geometry: list[dict]) -> list[list[float]]:

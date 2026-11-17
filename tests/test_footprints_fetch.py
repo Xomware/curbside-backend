@@ -48,7 +48,7 @@ def fake(monkeypatch):
 
 
 def http_error(code: int) -> HTTPError:
-    return HTTPError(overpass.INSTANCES[0], code, "err", None, None)
+    return HTTPError(overpass.URL, code, "err", None, None)
 
 
 def footprint(table, map_id) -> dict:
@@ -80,7 +80,7 @@ def test_ways_become_features_in_s3_and_meta_ready(table, bucket, map_id, fake):
     assert hall["properties"]["accessory"] is False
     fp = footprint(table, map_id)
     assert (fp["status"], fp["source"], fp["version"], fp["count"]) == ("ready", "osm", 1, 5)
-    assert f.urls == [overpass.INSTANCES[0]]
+    assert f.urls == [overpass.URL]
     assert f.user_agents == ["curbside/0.1 (+https://github.com/Xomware/curbside-backend)"]
 
 
@@ -132,11 +132,11 @@ def test_accessory_by_tag_or_small_area():
     assert [f["properties"]["accessory"] for f in features] == [False, True, True]
 
 
-def test_429_waits_30s_then_uses_second_instance(table, bucket, map_id, fake):
+def test_429_waits_30s_then_retries(table, bucket, map_id, fake):
     f = fake(http_error(429), "independence_hall")
     handler({"map_id": map_id}, None)
     assert f.sleeps == [30]
-    assert f.urls == list(overpass.INSTANCES)
+    assert f.urls == [overpass.URL] * 2
     assert footprint(table, map_id)["status"] == "ready"
 
 
@@ -149,14 +149,14 @@ def test_429_waits_30s_then_uses_second_instance(table, bucket, map_id, fake):
         {"elements": [], "remark": "runtime error: Query timed out"},
     ],
 )
-def test_other_failures_fall_back_without_waiting(table, bucket, map_id, fake, failure):
+def test_other_failures_retry_after_10s(table, bucket, map_id, fake, failure):
     f = fake(failure, "independence_hall")
     handler({"map_id": map_id}, None)
-    assert (f.sleeps, f.urls) == ([], list(overpass.INSTANCES))
+    assert (f.sleeps, f.urls) == ([10], [overpass.URL] * 2)
     assert footprint(table, map_id)["count"] == 5
 
 
-def test_both_instances_failing_marks_failed_and_keeps_version(table, bucket, map_id, fake):
+def test_both_attempts_failing_marks_failed_and_keeps_version(table, bucket, map_id, fake):
     fake("independence_hall")
     handler({"map_id": map_id}, None)
     fake(http_error(429), http_error(504))
