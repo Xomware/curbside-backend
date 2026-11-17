@@ -104,3 +104,23 @@ def bucket(table) -> str:
     name = os.environ["FOOTPRINTS_BUCKET"]
     boto3.client("s3").create_bucket(Bucket=name)
     return name
+
+
+@pytest.fixture
+def dynamo_calls(table) -> list[tuple[str, dict]]:
+    """(operation, params) of every DynamoDB call the code makes.
+
+    moto doesn't enforce IAM, so tests for the attribute-scoped roles assert
+    on these instead.
+    """
+    calls: list[tuple[str, dict]] = []
+
+    def record(params: dict, model: Any, **_: Any) -> None:
+        calls.append((model.name, dict(params)))
+
+    dynamo.table().meta.client.meta.events.register("before-parameter-build.dynamodb", record)
+    return calls
+
+
+def named_attributes(params: dict) -> set[str]:
+    return set(params.get("ExpressionAttributeNames", {}).values()) | set(params.get("Key", {}))
