@@ -15,13 +15,17 @@ os.environ.update(
     FOOTPRINTS_BUCKET="curbside-footprints-test",
     FOOTPRINTS_FETCH_FUNCTION="curbside-footprints-fetch",
     ANTHROPIC_API_KEY_PARAM="/curbside/anthropic/api-key",
+    APPLE_SERVICES_ID="com.example.curbside.signin",
+    APPLE_TEAM_ID="TEAMID1234",
+    APPLE_KEY_ID="KEYID12345",
+    APPLE_PRIVATE_KEY_PARAM="/curbside/apple/private-key",
 )
 
 import boto3  # noqa: E402
 import pytest  # noqa: E402
 from moto import mock_aws  # noqa: E402
 
-from lambdas.common import capture, dynamo, footprints, ssm  # noqa: E402
+from lambdas.common import capture, cognito, dynamo, footprints, ssm  # noqa: E402
 from lambdas.common.accounts import create_account  # noqa: E402
 from lambdas.common.dynamo import to_item  # noqa: E402
 from lambdas.common.households import create_household  # noqa: E402
@@ -32,7 +36,7 @@ from lambdas.common.models import HouseholdCreate, MapCreate  # noqa: E402
 @pytest.fixture
 def table():
     with mock_aws():
-        for cached in (dynamo.db, dynamo.table, footprints.s3, ssm.secret):
+        for cached in (dynamo.db, dynamo.table, footprints.s3, ssm.secret, cognito.cognito):
             cached.cache_clear()
         yield boto3.resource("dynamodb").create_table(
             TableName=os.environ["TABLE_NAME"],
@@ -65,9 +69,10 @@ def api_event(
     query: dict | None = None,
     username: str | None = None,
     path: dict | None = None,
+    claims: dict | None = None,
 ) -> dict:
     """HTTP API payload v2.0, as delivered behind the Cognito JWT authorizer."""
-    claims = {"sub": sub, "username": username or f"google_{sub}"}
+    claims = {"sub": sub, "username": username or f"google_{sub}", **(claims or {})}
     authorizer = {"jwt": {"claims": claims}} if sub else {}
     return {
         "version": "2.0",
