@@ -28,6 +28,11 @@ def get_provider(event: dict) -> str:
     return provider_of(_claims(event).get("username", ""))
 
 
+def get_auth_time(event: dict) -> int:
+    """When the caller last signed in, from the access token. HTTP APIs pass claims as strings."""
+    return int(_claims(event).get("auth_time", 0))
+
+
 def get_account_id(event: dict) -> str:
     # Read on every request, never cached: the JWT authorizer accepts an
     # unlinked sub's access token for up to an hour, so this read is what

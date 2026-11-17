@@ -22,6 +22,11 @@ class AuthError(CurbsideError):
     code = "unauthorized"
 
 
+class ForbiddenError(CurbsideError):
+    status = 403
+    code = "forbidden"
+
+
 class NotFoundError(CurbsideError):
     status = 404
     code = "not_found"

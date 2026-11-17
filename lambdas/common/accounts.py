@@ -9,6 +9,7 @@ from botocore.exceptions import ClientError
 from lambdas.common.dynamo import (
     acct_ident_key,
     acct_key,
+    delete_keys,
     get_item,
     ident_key,
     new_id,
@@ -118,3 +119,17 @@ def unlink_identity(account_id: str, sub: str) -> None:
             for key in (ident_key(sub), acct_ident_key(account_id, sub))
         ]
     )
+
+
+def delete_account_items(account_id: str, subs: list[str], caller_sub: str) -> None:
+    """Deletes the ACCT# partition and every IDENT# item, the caller's two rows last.
+
+    Three passes, because one BatchWriteItem has no order. Until the last pass the
+    caller still resolves to this account, and every IDENT#<sub> goes before the
+    ACCT#/IDENT#<sub> row that lists it, so a retry can always find what's left.
+    """
+    caller_rows = [acct_ident_key(account_id, caller_sub), ident_key(caller_sub)]
+    delete_keys([ident_key(s) for s in subs if s != caller_sub])
+    rows = [{"pk": i["pk"], "sk": i["sk"]} for i in query_prefix(f"ACCT#{account_id}")]
+    delete_keys([k for k in rows if k not in caller_rows])
+    delete_keys(caller_rows)
