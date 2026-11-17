@@ -1,0 +1,30 @@
+{
+ "operations": [
+  {
+   "op": "add_person",
+   "household_ref": "01JCAPTVRE0000000000000HH2",
+   "target_id": null,
+   "fields": {
+    "name": "Arjun",
+    "role": "kid",
+    "birth_year": 2016,
+    "birth_year_approx": false
+   },
+   "evidence": "Their son Arjun is 10 now.",
+   "confidence": 0.9,
+   "needs_review": false
+  },
+  {
+   "op": "add_note",
+   "household_ref": "01JCAPTVRE0000000000000HH2",
+   "target_id": "01JCAPTVRE0000000000000HH2",
+   "fields": {
+    "text": "Stopped by. Their son Arjun is 10 now."
+   },
+   "evidence": "Stopped by the corner brick. Their son Arjun is 10 now.",
+   "confidence": 0.8,
+   "needs_review": false
+  }
+ ],
+ "unresolved": []
+}

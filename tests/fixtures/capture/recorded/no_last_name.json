@@ -1,0 +1,29 @@
+{
+ "operations": [
+  {
+   "op": "add_person",
+   "household_ref": "01JCAPTVRE0000000000000HH3",
+   "target_id": null,
+   "fields": {
+    "name": "Kevin",
+    "role": "adult",
+    "notes": "Nurse"
+   },
+   "evidence": "Met the new neighbor Kevin at the yellow duplex, he's a nurse.",
+   "confidence": 0.85,
+   "needs_review": false
+  },
+  {
+   "op": "add_note",
+   "household_ref": "01JCAPTVRE0000000000000HH3",
+   "target_id": null,
+   "fields": {
+    "text": "Met the new neighbor Kevin at the yellow duplex, he's a nurse."
+   },
+   "evidence": "Met the new neighbor Kevin at the yellow duplex, he's a nurse.",
+   "confidence": 0.8,
+   "needs_review": false
+  }
+ ],
+ "unresolved": []
+}

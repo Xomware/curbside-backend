@@ -1,0 +1,44 @@
+{
+ "operations": [
+  {
+   "op": "add_person",
+   "household_ref": "new:1",
+   "target_id": null,
+   "fields": {
+    "name": "Bev",
+    "role": "adult",
+    "notes": "retired"
+   },
+   "evidence": "there's a retired couple, Bev and Hal",
+   "confidence": 0.6,
+   "needs_review": true
+  },
+  {
+   "op": "add_person",
+   "household_ref": "new:1",
+   "target_id": null,
+   "fields": {
+    "name": "Hal",
+    "role": "adult",
+    "notes": "retired"
+   },
+   "evidence": "there's a retired couple, Bev and Hal",
+   "confidence": 0.6,
+   "needs_review": true
+  },
+  {
+   "op": "create_household",
+   "household_ref": "new:1",
+   "target_id": null,
+   "fields": {
+    "label": "Across from corner brick"
+   },
+   "evidence": "Across the street from the corner brick there's a retired couple",
+   "confidence": 0.5,
+   "needs_review": true
+  }
+ ],
+ "unresolved": [
+  "Bev and Hal's house location is only given relative to the Corner brick house (across the street); exact address unknown, so it is a new household to confirm."
+ ]
+}

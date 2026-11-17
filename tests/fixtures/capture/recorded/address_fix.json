@@ -1,0 +1,16 @@
+{
+ "operations": [
+  {
+   "op": "update_household",
+   "household_ref": "01JCAPTVRE0000000000000HH3",
+   "target_id": null,
+   "fields": {
+    "address": "24 Maple Ct"
+   },
+   "evidence": "The yellow duplex is actually 24 Maple Ct, not 22.",
+   "confidence": 0.9,
+   "needs_review": false
+  }
+ ],
+ "unresolved": []
+}

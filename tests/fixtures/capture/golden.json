@@ -1,0 +1,429 @@
+{
+ "today": "2026-11-17",
+ "households": [
+  {
+   "id": "01JCAPTVRE0000000000000HH1",
+   "label": "Blue house",
+   "address": "14 Maple Ct, Springfield",
+   "lat": 40.0,
+   "lng": -75.0,
+   "people": [
+    {
+     "id": "01JCAPTVRE00000000000000P1",
+     "name": "Dana",
+     "role": "adult",
+     "birth_year": 1985
+    },
+    {
+     "id": "01JCAPTVRE00000000000000P2",
+     "name": "Theo",
+     "role": "kid",
+     "birth_year": 2018
+    }
+   ],
+   "pets": [
+    {
+     "id": "01JCAPTVRE00000000000000X1",
+     "name": "Biscuit",
+     "species": "dog"
+    }
+   ]
+  },
+  {
+   "id": "01JCAPTVRE0000000000000HH2",
+   "label": "Corner brick",
+   "address": "18 Maple Ct, Springfield",
+   "lat": 40.0001,
+   "lng": -75.0,
+   "people": [
+    {
+     "id": "01JCAPTVRE00000000000000P3",
+     "name": "Raj",
+     "role": "adult"
+    },
+    {
+     "id": "01JCAPTVRE00000000000000P4",
+     "name": "Priya",
+     "role": "adult"
+    }
+   ],
+   "pets": []
+  },
+  {
+   "id": "01JCAPTVRE0000000000000HH3",
+   "label": "Yellow duplex",
+   "address": "22 Maple Ct, Springfield",
+   "lat": 40.0002,
+   "lng": -75.0,
+   "people": [],
+   "pets": []
+  }
+ ],
+ "cases": [
+  {
+   "name": "kid_turned_8",
+   "transcript": "Talked to Dana out front. Theo just turned 8 last week.",
+   "focus": "01JCAPTVRE0000000000000HH1",
+   "nearby": [
+    "01JCAPTVRE0000000000000HH2",
+    "01JCAPTVRE0000000000000HH3"
+   ],
+   "expected": [
+    {
+     "op": "update_person",
+     "household_ref": "01JCAPTVRE0000000000000HH1",
+     "target_id": "01JCAPTVRE00000000000000P2",
+     "fields": {
+      "birth_year": 2018
+     }
+    }
+   ],
+   "optional": [
+    "add_note",
+    "touch_last_talked"
+   ],
+   "all_needs_review": false,
+   "forbid_fields": []
+  },
+  {
+   "name": "new_baby",
+   "transcript": "Stopped at the corner brick house, Raj and Priya had a baby girl, her name is Mira.",
+   "focus": "01JCAPTVRE0000000000000HH2",
+   "nearby": [
+    "01JCAPTVRE0000000000000HH1",
+    "01JCAPTVRE0000000000000HH3"
+   ],
+   "expected": [
+    {
+     "op": "add_person",
+     "household_ref": "01JCAPTVRE0000000000000HH2",
+     "target_id": null,
+     "fields": {
+      "name": "Mira",
+      "role": "kid",
+      "birth_year": 2026
+     }
+    }
+   ],
+   "optional": [
+    "add_note",
+    "touch_last_talked"
+   ],
+   "all_needs_review": false,
+   "forbid_fields": []
+  },
+  {
+   "name": "new_pet",
+   "transcript": "Dana got a second dog, a beagle called Pickles.",
+   "focus": "01JCAPTVRE0000000000000HH1",
+   "nearby": [
+    "01JCAPTVRE0000000000000HH2",
+    "01JCAPTVRE0000000000000HH3"
+   ],
+   "expected": [
+    {
+     "op": "add_pet",
+     "household_ref": "01JCAPTVRE0000000000000HH1",
+     "target_id": null,
+     "fields": {
+      "name": "Pickles"
+     }
+    }
+   ],
+   "optional": [
+    "add_note",
+    "touch_last_talked"
+   ],
+   "all_needs_review": false,
+   "forbid_fields": []
+  },
+  {
+   "name": "new_household",
+   "transcript": "A new family moved into the gray house at 30 Maple Ct. The dad is Marcus and they have a kid about 6 named Ollie.",
+   "focus": "01JCAPTVRE0000000000000HH1",
+   "nearby": [
+    "01JCAPTVRE0000000000000HH2",
+    "01JCAPTVRE0000000000000HH3"
+   ],
+   "expected": [
+    {
+     "op": "create_household",
+     "household_ref": "new:1",
+     "target_id": null,
+     "fields": {}
+    },
+    {
+     "op": "add_person",
+     "household_ref": "new:1",
+     "target_id": null,
+     "fields": {
+      "name": "Marcus",
+      "role": "adult"
+     }
+    },
+    {
+     "op": "add_person",
+     "household_ref": "new:1",
+     "target_id": null,
+     "fields": {
+      "name": "Ollie",
+      "role": "kid",
+      "birth_year": 2020,
+      "birth_year_approx": true
+     }
+    }
+   ],
+   "optional": [
+    "add_note",
+    "touch_last_talked"
+   ],
+   "all_needs_review": false,
+   "forbid_fields": []
+  },
+  {
+   "name": "next_door_only",
+   "transcript": "Next door to Dana's there's a guy named Sam who just moved in.",
+   "focus": "01JCAPTVRE0000000000000HH1",
+   "nearby": [
+    "01JCAPTVRE0000000000000HH2",
+    "01JCAPTVRE0000000000000HH3"
+   ],
+   "expected": [],
+   "optional": [
+    "add_person",
+    "create_household",
+    "add_note",
+    "touch_last_talked",
+    "update_household"
+   ],
+   "all_needs_review": true,
+   "forbid_fields": []
+  },
+  {
+   "name": "health_stays_in_note",
+   "transcript": "Priya told me Raj has been in the hospital for his heart. Keep that between us.",
+   "focus": "01JCAPTVRE0000000000000HH2",
+   "nearby": [
+    "01JCAPTVRE0000000000000HH1",
+    "01JCAPTVRE0000000000000HH3"
+   ],
+   "expected": [
+    {
+     "op": "add_note",
+     "household_ref": "01JCAPTVRE0000000000000HH2",
+     "target_id": null,
+     "fields": {}
+    }
+   ],
+   "optional": [
+    "touch_last_talked"
+   ],
+   "all_needs_review": false,
+   "forbid_fields": [
+    "notes"
+   ]
+  },
+  {
+   "name": "no_last_name",
+   "transcript": "Met the new neighbor Kevin at the yellow duplex, he's a nurse.",
+   "focus": "01JCAPTVRE0000000000000HH3",
+   "nearby": [
+    "01JCAPTVRE0000000000000HH1",
+    "01JCAPTVRE0000000000000HH2"
+   ],
+   "expected": [
+    {
+     "op": "add_person",
+     "household_ref": "01JCAPTVRE0000000000000HH3",
+     "target_id": null,
+     "fields": {
+      "name": "Kevin",
+      "role": "adult"
+     }
+    }
+   ],
+   "optional": [
+    "add_note",
+    "touch_last_talked"
+   ],
+   "all_needs_review": false,
+   "forbid_fields": []
+  },
+  {
+   "name": "birthday",
+   "transcript": "Theo's birthday is March 3rd.",
+   "focus": "01JCAPTVRE0000000000000HH1",
+   "nearby": [
+    "01JCAPTVRE0000000000000HH2",
+    "01JCAPTVRE0000000000000HH3"
+   ],
+   "expected": [
+    {
+     "op": "update_person",
+     "household_ref": "01JCAPTVRE0000000000000HH1",
+     "target_id": "01JCAPTVRE00000000000000P2",
+     "fields": {
+      "birthday": "03-03"
+     }
+    }
+   ],
+   "optional": [],
+   "all_needs_review": false,
+   "forbid_fields": []
+  },
+  {
+   "name": "off_roster_person",
+   "transcript": "Someone named Greg over on Birch Street still has my ladder.",
+   "focus": "01JCAPTVRE0000000000000HH1",
+   "nearby": [
+    "01JCAPTVRE0000000000000HH2",
+    "01JCAPTVRE0000000000000HH3"
+   ],
+   "expected": [],
+   "optional": [
+    "add_note"
+   ],
+   "all_needs_review": false,
+   "forbid_fields": []
+  },
+  {
+   "name": "kid_age_exact",
+   "transcript": "Stopped by the corner brick. Their son Arjun is 10 now.",
+   "focus": "01JCAPTVRE0000000000000HH2",
+   "nearby": [
+    "01JCAPTVRE0000000000000HH1",
+    "01JCAPTVRE0000000000000HH3"
+   ],
+   "expected": [
+    {
+     "op": "add_person",
+     "household_ref": "01JCAPTVRE0000000000000HH2",
+     "target_id": null,
+     "fields": {
+      "name": "Arjun",
+      "role": "kid",
+      "birth_year": 2016
+     }
+    }
+   ],
+   "optional": [
+    "add_note",
+    "touch_last_talked"
+   ],
+   "all_needs_review": false,
+   "forbid_fields": []
+  },
+  {
+   "name": "pet_species_fix",
+   "transcript": "Biscuit is actually a cat, not a dog.",
+   "focus": "01JCAPTVRE0000000000000HH1",
+   "nearby": [
+    "01JCAPTVRE0000000000000HH2",
+    "01JCAPTVRE0000000000000HH3"
+   ],
+   "expected": [
+    {
+     "op": "update_pet",
+     "household_ref": "01JCAPTVRE0000000000000HH1",
+     "target_id": "01JCAPTVRE00000000000000X1",
+     "fields": {
+      "species": "cat"
+     }
+    }
+   ],
+   "optional": [],
+   "all_needs_review": false,
+   "forbid_fields": []
+  },
+  {
+   "name": "address_fix",
+   "transcript": "The yellow duplex is actually 24 Maple Ct, not 22.",
+   "focus": "01JCAPTVRE0000000000000HH3",
+   "nearby": [
+    "01JCAPTVRE0000000000000HH1",
+    "01JCAPTVRE0000000000000HH2"
+   ],
+   "expected": [
+    {
+     "op": "update_household",
+     "household_ref": "01JCAPTVRE0000000000000HH3",
+     "target_id": null,
+     "fields": {
+      "address": "24 Maple Ct"
+     }
+    }
+   ],
+   "optional": [],
+   "all_needs_review": false,
+   "forbid_fields": []
+  },
+  {
+   "name": "approx_adult",
+   "transcript": "Dana's mom Ruth lives with them now, she's around 70.",
+   "focus": "01JCAPTVRE0000000000000HH1",
+   "nearby": [
+    "01JCAPTVRE0000000000000HH2",
+    "01JCAPTVRE0000000000000HH3"
+   ],
+   "expected": [
+    {
+     "op": "add_person",
+     "household_ref": "01JCAPTVRE0000000000000HH1",
+     "target_id": null,
+     "fields": {
+      "name": "Ruth",
+      "role": "adult",
+      "birth_year": 1956,
+      "birth_year_approx": true
+     }
+    }
+   ],
+   "optional": [
+    "add_note",
+    "touch_last_talked"
+   ],
+   "all_needs_review": false,
+   "forbid_fields": []
+  },
+  {
+   "name": "chat_note",
+   "transcript": "Had a nice chat with Raj this morning about the block party next Saturday.",
+   "focus": "01JCAPTVRE0000000000000HH2",
+   "nearby": [
+    "01JCAPTVRE0000000000000HH1",
+    "01JCAPTVRE0000000000000HH3"
+   ],
+   "expected": [
+    {
+     "op": "add_note",
+     "household_ref": "01JCAPTVRE0000000000000HH2",
+     "target_id": null,
+     "fields": {}
+    }
+   ],
+   "optional": [
+    "touch_last_talked"
+   ],
+   "all_needs_review": false,
+   "forbid_fields": []
+  },
+  {
+   "name": "across_the_street",
+   "transcript": "Across the street from the corner brick there's a retired couple, Bev and Hal.",
+   "focus": "01JCAPTVRE0000000000000HH2",
+   "nearby": [
+    "01JCAPTVRE0000000000000HH1",
+    "01JCAPTVRE0000000000000HH3"
+   ],
+   "expected": [],
+   "optional": [
+    "add_person",
+    "create_household",
+    "add_note",
+    "touch_last_talked"
+   ],
+   "all_needs_review": true,
+   "forbid_fields": []
+  }
+ ]
+}

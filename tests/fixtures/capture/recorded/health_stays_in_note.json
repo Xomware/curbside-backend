@@ -1,0 +1,16 @@
+{
+ "operations": [
+  {
+   "op": "add_note",
+   "household_ref": "01JCAPTVRE0000000000000HH2",
+   "target_id": "01JCAPTVRE00000000000000P3",
+   "fields": {
+    "text": "Priya told me Raj has been in the hospital for his heart. Keep that between us."
+   },
+   "evidence": "Priya told me Raj has been in the hospital for his heart. Keep that between us.",
+   "confidence": 0.6,
+   "needs_review": false
+  }
+ ],
+ "unresolved": []
+}

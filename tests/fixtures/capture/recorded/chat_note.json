@@ -1,0 +1,18 @@
+{
+ "operations": [
+  {
+   "op": "add_note",
+   "household_ref": "01JCAPTVRE0000000000000HH2",
+   "target_id": "01JCAPTVRE00000000000000P3",
+   "fields": {
+    "text": "Had a nice chat with Raj this morning about the block party next Saturday."
+   },
+   "evidence": "Had a nice chat with Raj this morning about the block party next Saturday.",
+   "confidence": 0.9,
+   "needs_review": false
+  }
+ ],
+ "unresolved": [
+  "Block party next Saturday: no household-specific detail to record beyond the chat"
+ ]
+}

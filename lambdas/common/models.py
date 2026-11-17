@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import ClassVar, Literal, Self
+from typing import Annotated, ClassVar, Literal, Self
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 # extra="forbid": a body can't set fields the server owns, like `published`.
 _STRICT = ConfigDict(str_strip_whitespace=True, extra="forbid")
@@ -133,3 +133,24 @@ class NoteCreate(BaseModel):
 
     text: str = Field(min_length=1, max_length=2000)
     source: Literal["voice", "text", "manual"] = "manual"
+
+
+Ulid = Annotated[str, StringConstraints(pattern=r"^[0-9A-HJKMNP-TV-Z]{26}$")]
+
+
+class CaptureParse(BaseModel):
+    model_config = _STRICT
+
+    transcript: str = Field(min_length=1, max_length=2000)
+    source: Literal["voice", "text"]
+    focus_household_id: Ulid | None = None
+    nearby_household_ids: list[Ulid] = Field(default_factory=list, max_length=8)
+
+
+class HouseholdDraft(BaseModel):
+    """A household as a capture names it; the client adds lat/lng before apply."""
+
+    model_config = _STRICT
+
+    label: str = Field(min_length=1, max_length=80)
+    address: str | None = Field(default=None, max_length=200)

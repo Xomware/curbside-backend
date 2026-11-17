@@ -1,0 +1,16 @@
+{
+ "operations": [
+  {
+   "op": "update_pet",
+   "household_ref": "01JCAPTVRE0000000000000HH1",
+   "target_id": "01JCAPTVRE00000000000000X1",
+   "fields": {
+    "species": "cat"
+   },
+   "evidence": "Biscuit is actually a cat, not a dog.",
+   "confidence": 0.95,
+   "needs_review": false
+  }
+ ],
+ "unresolved": []
+}
