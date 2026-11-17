@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import ClassVar, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 
 # extra="forbid": a body can't set fields the server owns, like `published`.
 _STRICT = ConfigDict(str_strip_whitespace=True, extra="forbid")
@@ -57,3 +57,24 @@ class MapUpdate(Patch):
     name: str | None = Field(default=None, min_length=1, max_length=80)
     center: Point | None = None
     radius_m: int | None = Field(default=None, ge=50, le=1000)
+
+
+class HouseholdCreate(BaseModel):
+    model_config = _STRICT
+
+    label: str = Field(min_length=1, max_length=80)
+    address: str | None = Field(default=None, max_length=200)
+    lat: float = Field(ge=-90, le=90)
+    lng: float = Field(ge=-180, le=180)
+    building_id: str | None = Field(default=None, max_length=100)
+
+
+class HouseholdUpdate(Patch):
+    nullable = frozenset({"address", "building_id", "last_talked_at"})
+
+    label: str | None = Field(default=None, min_length=1, max_length=80)
+    address: str | None = Field(default=None, max_length=200)
+    lat: float | None = Field(default=None, ge=-90, le=90)
+    lng: float | None = Field(default=None, ge=-180, le=180)
+    building_id: str | None = Field(default=None, max_length=100)
+    last_talked_at: AwareDatetime | None = None

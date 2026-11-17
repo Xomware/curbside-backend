@@ -7,11 +7,20 @@ from lambdas.common.accounts import create_account
 from lambdas.maps_get.handler import handler
 
 
-def test_member_gets_map(table, map_id):
+def test_member_gets_map_and_households_without_notes(table, map_id, hh_id):
+    pk = f"MAP#{map_id}"
+    table.put_item(Item={"pk": pk, "sk": f"HH#{hh_id}#PET#X1", "name": "Rex", "version": 1})
+    table.put_item(Item={"pk": pk, "sk": f"NOTE#{hh_id}#N1", "text": "hi"})
+
     status, body = call(handler, path={"mapId": map_id})
+
     assert status == 200
     assert body["data"]["map"]["id"] == map_id
     assert body["data"]["map"]["name"] == "Elm St"
+    [hh] = body["data"]["households"]
+    assert hh["id"] == hh_id
+    assert hh["private"]["pets"] == [{"id": "X1", "name": "Rex", "version": 1}]
+    assert "notes" not in hh["private"]
 
 
 def test_non_member_gets_same_404_as_missing(table, map_id):

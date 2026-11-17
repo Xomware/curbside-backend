@@ -19,8 +19,9 @@ from moto import mock_aws  # noqa: E402
 
 from lambdas.common import auth, dynamo, footprints  # noqa: E402
 from lambdas.common.accounts import create_account  # noqa: E402
+from lambdas.common.households import create_household  # noqa: E402
 from lambdas.common.maps import create_map  # noqa: E402
-from lambdas.common.models import MapCreate  # noqa: E402
+from lambdas.common.models import HouseholdCreate, MapCreate  # noqa: E402
 
 
 @pytest.fixture
@@ -91,6 +92,12 @@ def account(table) -> str:
 def map_id(account) -> str:
     body = MapCreate(name="Elm St", center={"lat": 40.0, "lng": -75.0})
     return create_map(account, body)["id"]
+
+
+@pytest.fixture
+def hh_id(map_id) -> str:
+    body = HouseholdCreate(label="Blue house", lat=40.001, lng=-75.002, address="12 Elm St")
+    return create_household(map_id, body)["id"]
 
 
 @pytest.fixture
