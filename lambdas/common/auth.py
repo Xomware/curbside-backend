@@ -3,8 +3,6 @@ from __future__ import annotations
 from lambdas.common.dynamo import get_item, ident_key, member_key
 from lambdas.common.errors import AuthError, NotFoundError
 
-_accounts: dict[str, str] = {}
-
 # Cognito names federated users "<IdP provider_name>_<IdP sub>"; the provider
 # names are set in curbside-infrastructure cognito_idps.tf.
 _PROVIDERS = {"google": "google", "signinwithapple": "apple"}
@@ -21,20 +19,22 @@ def get_sub(event: dict) -> str:
     return sub
 
 
-def get_provider(event: dict) -> str:
-    prefix = _claims(event).get("username", "").partition("_")[0].lower()
+def provider_of(username: str) -> str:
+    prefix = username.partition("_")[0].lower()
     return _PROVIDERS.get(prefix, prefix)
 
 
+def get_provider(event: dict) -> str:
+    return provider_of(_claims(event).get("username", ""))
+
+
 def get_account_id(event: dict) -> str:
-    """Resolves the caller's sub to an account id, cached for the container's lifetime."""
-    sub = get_sub(event)
-    if sub in _accounts:
-        return _accounts[sub]
-    item = get_item(ident_key(sub))
+    # Read on every request, never cached: the JWT authorizer accepts an
+    # unlinked sub's access token for up to an hour, so this read is what
+    # stops it reaching the account.
+    item = get_item(ident_key(get_sub(event)))
     if not item:
         raise NotFoundError("No account for this sign-in", code="needs_onboarding")
-    _accounts[sub] = item["account_id"]
     return item["account_id"]
 
 
