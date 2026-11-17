@@ -17,6 +17,10 @@ class AccountCreate(BaseModel):
     display_name: str = Field(min_length=1, max_length=80)
 
 
+class LinkRequest(BaseModel):
+    id_token: str = Field(min_length=1, max_length=8192)
+
+
 class Patch(BaseModel):
     """PATCH body: `version` plus the fields to change. Null clears a field in `nullable`."""
 

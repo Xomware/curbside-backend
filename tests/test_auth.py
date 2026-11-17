@@ -24,12 +24,13 @@ def test_unknown_sub_needs_onboarding(table):
     assert exc.value.status == 404
 
 
-def test_known_sub_resolves_and_caches(table):
+def test_known_sub_resolves_and_stops_once_unlinked(table):
     table.put_item(Item={"pk": "IDENT#sub-1", "sk": "IDENT", "account_id": "acct-1"})
     assert get_account_id(api_event(sub="sub-1")) == "acct-1"
 
     table.delete_item(Key={"pk": "IDENT#sub-1", "sk": "IDENT"})
-    assert get_account_id(api_event(sub="sub-1")) == "acct-1"
+    with pytest.raises(NotFoundError):
+        get_account_id(api_event(sub="sub-1"))
 
 
 def test_require_member_returns_membership(table):

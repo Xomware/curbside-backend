@@ -17,7 +17,7 @@ import boto3  # noqa: E402
 import pytest  # noqa: E402
 from moto import mock_aws  # noqa: E402
 
-from lambdas.common import auth, dynamo, footprints  # noqa: E402
+from lambdas.common import dynamo, footprints  # noqa: E402
 from lambdas.common.accounts import create_account  # noqa: E402
 from lambdas.common.households import create_household  # noqa: E402
 from lambdas.common.maps import create_map  # noqa: E402
@@ -29,7 +29,6 @@ def table():
     with mock_aws():
         for cached in (dynamo.db, dynamo.table, footprints.s3):
             cached.cache_clear()
-        auth._accounts.clear()
         yield boto3.resource("dynamodb").create_table(
             TableName=os.environ["TABLE_NAME"],
             BillingMode="PAY_PER_REQUEST",
