@@ -9,7 +9,6 @@ from __future__ import annotations
 import json
 import re
 from datetime import UTC, date, datetime, timedelta
-from typing import Literal
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -25,6 +24,7 @@ from lambdas.common.models import (
     HouseholdDraft,
     HouseholdUpdate,
     NoteCreate,
+    OpName,
     PersonCreate,
     PersonUpdate,
     PetCreate,
@@ -35,17 +35,6 @@ MODEL = "claude-haiku-5-5"
 QUOTA_PER_DAY = 50
 TOOL_NAME = "propose_operations"
 _NEW_REF = re.compile(r"new:\d+")
-
-OpName = Literal[
-    "create_household",
-    "update_household",
-    "add_person",
-    "update_person",
-    "add_pet",
-    "update_pet",
-    "add_note",
-    "touch_last_talked",
-]
 
 # op → (model validating its fields, field names the model may set, takes a target_id)
 OPS: dict[str, tuple[type[BaseModel] | None, frozenset[str], bool]] = {

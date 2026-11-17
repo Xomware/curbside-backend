@@ -1,73 +1,14 @@
 from __future__ import annotations
 
-import io
 import json
 import logging
-from pathlib import Path
 from urllib.error import HTTPError
 
-import boto3
 import pytest
-from conftest import call, named_attributes
+from conftest import CASES, H1, H2, SECRET_KEY, THEO, call, named_attributes, recorded
 
 from lambdas.capture_parse.handler import handler
-from lambdas.common import capture
 from lambdas.common.accounts import create_account
-from lambdas.common.dynamo import to_item
-
-FIXTURES = Path(__file__).parent / "fixtures" / "capture"
-GOLDEN = json.loads((FIXTURES / "golden.json").read_text())
-H1, H2, H3 = (h["id"] for h in GOLDEN["households"])
-CASES = {c["name"]: c for c in GOLDEN["cases"]}
-DANA, THEO = (p["id"] for p in GOLDEN["households"][0]["people"])
-SECRET_KEY = "sk-test-not-real"
-
-
-def recorded(name: str) -> dict:
-    return json.loads((FIXTURES / "recorded" / f"{name}.json").read_text())
-
-
-class FakeAnthropic:
-    def __init__(self, tool_input: dict | None = None, error: Exception | None = None) -> None:
-        self.tool_input, self.error = tool_input, error
-        self.requests: list[dict] = []
-        self.headers: list[dict] = []
-
-    def urlopen(self, request, timeout):
-        self.requests.append(json.loads(request.data))
-        self.headers.append(dict(request.header_items()))
-        if self.error:
-            raise self.error
-        content = [{"type": "tool_use", "name": capture.TOOL_NAME, "input": self.tool_input}]
-        return io.BytesIO(json.dumps({"content": content}).encode())
-
-
-@pytest.fixture
-def model(monkeypatch):
-    def install(tool_input=None, error=None):
-        fake = FakeAnthropic(tool_input, error)
-        monkeypatch.setattr(capture, "urlopen", fake.urlopen)
-        return fake
-
-    return install
-
-
-@pytest.fixture
-def golden_map(table, map_id) -> str:
-    """The golden households, people and pets, at their fixture ids."""
-    boto3.client("ssm").put_parameter(
-        Name="/curbside/anthropic/api-key", Value=SECRET_KEY, Type="SecureString"
-    )
-    pk = f"MAP#{map_id}"
-    for hh in GOLDEN["households"]:
-        fields = {k: hh[k] for k in ("label", "address", "lat", "lng")}
-        table.put_item(Item=to_item({"pk": pk, "sk": f"HH#{hh['id']}", **fields, "version": 3}))
-        for kind, children in (("PERSON", hh["people"]), ("PET", hh["pets"])):
-            for c in children:
-                sk = f"HH#{hh['id']}#{kind}#{c['id']}"
-                item = {k: v for k, v in c.items() if k != "id"}
-                table.put_item(Item={"pk": pk, "sk": sk, **item, "version": 2})
-    return map_id
 
 
 def parse(map_id, case: str | None = None, **overrides):

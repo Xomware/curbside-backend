@@ -32,6 +32,11 @@ class ConflictError(CurbsideError):
     code = "version_conflict"
 
 
+class PayloadTooLargeError(CurbsideError):
+    status = 413
+    code = "payload_too_large"
+
+
 class RateLimitError(CurbsideError):
     status = 429
     code = "rate_limited"
