@@ -154,3 +154,32 @@ class HouseholdDraft(BaseModel):
 
     label: str = Field(min_length=1, max_length=80)
     address: str | None = Field(default=None, max_length=200)
+
+
+OpName = Literal[
+    "create_household",
+    "update_household",
+    "add_person",
+    "update_person",
+    "add_pet",
+    "update_pet",
+    "add_note",
+    "touch_last_talked",
+]
+
+
+class ApplyOp(BaseModel):
+    """An op as capture_parse returned it, possibly edited. Display-only keys are ignored."""
+
+    op: OpName
+    household_ref: str = Field(pattern=r"^([0-9A-HJKMNP-TV-Z]{26}|new:\d+)$")
+    target_id: Ulid | None = None
+    fields: dict = Field(default_factory=dict)
+
+
+class CaptureApply(BaseModel):
+    model_config = _STRICT
+
+    operations: list[ApplyOp] = Field(min_length=1)
+    base_versions: dict[str, int] = Field(default_factory=dict)
+    source: Literal["voice", "text"] = "text"
