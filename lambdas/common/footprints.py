@@ -5,16 +5,74 @@ from __future__ import annotations
 import gzip
 import json
 import os
+from datetime import UTC, datetime, timedelta
 from functools import cache
 
 import boto3
+from botocore.config import Config
+from botocore.exceptions import ClientError
 
-from lambdas.common.dynamo import meta_key, table
+from lambdas.common.dynamo import get_item, meta_key, now, table
+from lambdas.common.errors import RateLimitError
+
+REFRESH_COOLDOWN = timedelta(minutes=5)
 
 
 @cache
 def s3():
-    return boto3.client("s3")
+    # SigV4 presigning: objects are SSE-KMS, which S3 refuses to serve on SigV2.
+    return boto3.client("s3", config=Config(signature_version="s3v4"))
+
+
+@cache
+def _lambda():
+    return boto3.client("lambda")
+
+
+def start_fetch(map_id: str) -> None:
+    _lambda().invoke(
+        FunctionName=os.environ["FOOTPRINTS_FETCH_FUNCTION"],
+        InvocationType="Event",
+        Payload=json.dumps({"map_id": map_id}).encode(),
+    )
+
+
+def get_footprint(map_id: str) -> dict:
+    # Projected: the footprints roles may only read these attributes of a MAP# item.
+    return get_item(meta_key(map_id), ("pk", "sk", "footprint"))["footprint"]
+
+
+def presign(map_id: str, version: int) -> str:
+    return s3().generate_presigned_url(
+        "get_object",
+        Params={
+            "Bucket": os.environ["FOOTPRINTS_BUCKET"],
+            "Key": f"footprints/{map_id}/v{version}.geojson.gz",
+        },
+        ExpiresIn=300,
+    )
+
+
+def mark_refresh(map_id: str) -> None:
+    """Sets the footprint pending, unless a fetch was requested in the last 5 minutes.
+
+    The cooldown keeps Overpass load low and still frees a map left pending by a crash.
+    """
+    footprint = {**get_footprint(map_id), "status": "pending", "requested_at": now()}
+    cutoff = (datetime.now(UTC) - REFRESH_COOLDOWN).isoformat(timespec="seconds")
+    try:
+        table().update_item(
+            Key=meta_key(map_id),
+            UpdateExpression="SET #fp = :fp",
+            ConditionExpression="attribute_not_exists(#fp.requested_at) OR #fp.requested_at < :cut",
+            ExpressionAttributeNames={"#fp": "footprint"},
+            ExpressionAttributeValues={":fp": footprint, ":cut": cutoff},
+            ReturnValues="NONE",
+        )
+    except ClientError as e:
+        if e.response["Error"]["Code"] != "ConditionalCheckFailedException":
+            raise
+        raise RateLimitError("Footprints were refreshed recently", code="refresh_too_soon") from e
 
 
 def delete_footprints(map_id: str) -> None:
