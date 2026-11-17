@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import json
+import re
 import time
 import traceback
 from collections.abc import Callable
@@ -11,8 +12,10 @@ from typing import Any
 
 import pydantic
 
-from lambdas.common.errors import CurbsideError
+from lambdas.common.errors import CurbsideError, NotFoundError
 from lambdas.common.logger import log
+
+_ULID = re.compile("[0-9A-HJKMNP-TV-Z]{26}")
 
 
 def _default(value: Any) -> Any:
@@ -45,6 +48,15 @@ def parse_body[M: pydantic.BaseModel](event: dict, model: type[M]) -> M:
     if event.get("isBase64Encoded"):
         raw = base64.b64decode(raw)
     return model.model_validate_json(raw)
+
+
+def path_id(event: dict, name: str) -> str:
+    # Ids feed begins_with queries; a short one like "01" would match every
+    # household in the map.
+    value = (event.get("pathParameters") or {}).get(name, "")
+    if not _ULID.fullmatch(value):
+        raise NotFoundError("Not found")
+    return value
 
 
 def handle_errors(handler_name: str) -> Callable:

@@ -40,7 +40,8 @@ def get_account_id(event: dict) -> str:
 
 def require_member(map_id: str, account_id: str) -> dict:
     # Same 404 whether the map is missing or just not yours, so ids can't be probed.
-    item = get_item(member_key(map_id, account_id))
+    # Projected: footprints roles may only read these attributes of a MAP# item.
+    item = get_item(member_key(map_id, account_id), ("pk", "sk", "role"))
     if not item:
         raise NotFoundError("Map not found", code="map_not_found")
     return item

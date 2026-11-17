@@ -37,6 +37,14 @@ def test_require_member_returns_membership(table):
     assert require_member("m1", "acct-1")["role"] == "owner"
 
 
+def test_require_member_projects_only_keys_and_role(table):
+    # Footprints roles are denied any MAP# read that asks for other attributes.
+    table.put_item(
+        Item={"pk": "MAP#m1", "sk": "MEMBER#acct-1", "role": "owner", "gsi1pk": "ACCT#acct-1"}
+    )
+    assert set(require_member("m1", "acct-1")) == {"pk", "sk", "role"}
+
+
 def test_require_member_hides_other_maps(table):
     table.put_item(Item={"pk": "MAP#m1", "sk": "MEMBER#acct-1", "role": "owner"})
     for map_id, account_id in [("m1", "acct-2"), ("missing", "acct-1")]:

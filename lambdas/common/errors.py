@@ -25,3 +25,8 @@ class AuthError(CurbsideError):
 class NotFoundError(CurbsideError):
     status = 404
     code = "not_found"
+
+
+class ConflictError(CurbsideError):
+    status = 409
+    code = "version_conflict"
