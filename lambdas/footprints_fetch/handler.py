@@ -3,7 +3,7 @@
 Payload: {"map_id": "<ULID>"}, from maps_create or footprints_refresh.
 Writes footprints/<mapId>/v<n>.geojson.gz and sets META.footprint to ready or empty
 with version n, or marks it failed and keeps the version when both Overpass
-instances fail. A crash leaves it pending for the user to refresh.
+attempts fail. A crash leaves it pending for the user to refresh.
 """
 
 from __future__ import annotations
