@@ -1,0 +1,30 @@
+{
+ "operations": [
+  {
+   "op": "add_pet",
+   "household_ref": "01JCAPTVRE0000000000000HH1",
+   "target_id": null,
+   "fields": {
+    "name": "Pickles",
+    "species": "dog",
+    "label": "beagle",
+    "notes": "Dana's second dog"
+   },
+   "evidence": "Dana got a second dog, a beagle called Pickles.",
+   "confidence": 0.9,
+   "needs_review": false
+  },
+  {
+   "op": "add_note",
+   "household_ref": "01JCAPTVRE0000000000000HH1",
+   "target_id": "01JCAPTVRE00000000000000P1",
+   "fields": {
+    "text": "Got a second dog, a beagle called Pickles."
+   },
+   "evidence": "Dana got a second dog, a beagle called Pickles.",
+   "confidence": 0.85,
+   "needs_review": false
+  }
+ ],
+ "unresolved": []
+}

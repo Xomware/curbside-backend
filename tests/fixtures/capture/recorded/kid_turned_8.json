@@ -1,0 +1,26 @@
+{
+ "operations": [
+  {
+   "op": "update_person",
+   "household_ref": "01JCAPTVRE0000000000000HH1",
+   "target_id": "01JCAPTVRE00000000000000P2",
+   "fields": {
+    "birth_year": 2018,
+    "birth_year_approx": false
+   },
+   "evidence": "Theo just turned 8 last week.",
+   "confidence": 0.9,
+   "needs_review": false
+  },
+  {
+   "op": "touch_last_talked",
+   "household_ref": "01JCAPTVRE0000000000000HH1",
+   "target_id": "01JCAPTVRE00000000000000P1",
+   "fields": {},
+   "evidence": "Talked to Dana out front.",
+   "confidence": 0.9,
+   "needs_review": false
+  }
+ ],
+ "unresolved": []
+}

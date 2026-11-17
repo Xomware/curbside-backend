@@ -35,3 +35,13 @@ class ConflictError(CurbsideError):
 class RateLimitError(CurbsideError):
     status = 429
     code = "rate_limited"
+
+
+class BadGatewayError(CurbsideError):
+    status = 502
+    code = "bad_gateway"
+
+
+class UnavailableError(CurbsideError):
+    status = 503
+    code = "unavailable"

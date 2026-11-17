@@ -1,0 +1,31 @@
+{
+ "operations": [
+  {
+   "op": "add_person",
+   "household_ref": "new:1",
+   "target_id": null,
+   "fields": {
+    "name": "Sam",
+    "role": "adult"
+   },
+   "evidence": "there's a guy named Sam who just moved in",
+   "confidence": 0.5,
+   "needs_review": true
+  },
+  {
+   "op": "create_household",
+   "household_ref": "new:1",
+   "target_id": null,
+   "fields": {
+    "label": "Next door to Dana (Sam's home)",
+    "notes": "Sam just moved in next door to Dana."
+   },
+   "evidence": "Next door to Dana's there's a guy named Sam who just moved in.",
+   "confidence": 0.4,
+   "needs_review": true
+  }
+ ],
+ "unresolved": [
+  "Sam's house is only located as next door to Dana; exact address unknown (could be 14 Maple Ct neighbor at 18 or 22 Maple Ct)"
+ ]
+}

@@ -1,0 +1,46 @@
+{
+ "operations": [
+  {
+   "op": "create_household",
+   "household_ref": "new:1",
+   "target_id": null,
+   "fields": {
+    "label": "Gray house",
+    "address": "30 Maple Ct"
+   },
+   "evidence": "A new family moved into the gray house at 30 Maple Ct.",
+   "confidence": 0.9,
+   "needs_review": false
+  },
+  {
+   "op": "add_person",
+   "household_ref": "new:1",
+   "target_id": null,
+   "fields": {
+    "name": "Marcus",
+    "role": "adult",
+    "notes": "Dad of the new family"
+   },
+   "evidence": "The dad is Marcus",
+   "confidence": 0.9,
+   "needs_review": false
+  },
+  {
+   "op": "add_person",
+   "household_ref": "new:1",
+   "target_id": null,
+   "fields": {
+    "name": "Ollie",
+    "role": "kid",
+    "birth_year": 2020,
+    "birth_year_approx": true
+   },
+   "evidence": "they have a kid about 6 named Ollie",
+   "confidence": 0.85,
+   "needs_review": false
+  }
+ ],
+ "unresolved": [
+  "Marcus's and Ollie's household is new; no last names given"
+ ]
+}

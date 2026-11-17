@@ -1,0 +1,31 @@
+{
+ "operations": [
+  {
+   "op": "add_person",
+   "household_ref": "01JCAPTVRE0000000000000HH2",
+   "target_id": null,
+   "fields": {
+    "name": "Mira",
+    "role": "kid",
+    "birth_year": 2026,
+    "birth_year_approx": false,
+    "label": "baby girl"
+   },
+   "evidence": "Raj and Priya had a baby girl, her name is Mira.",
+   "confidence": 0.9,
+   "needs_review": false
+  },
+  {
+   "op": "add_note",
+   "household_ref": "01JCAPTVRE0000000000000HH2",
+   "target_id": null,
+   "fields": {
+    "text": "Raj and Priya had a baby girl, her name is Mira."
+   },
+   "evidence": "Raj and Priya had a baby girl, her name is Mira.",
+   "confidence": 0.8,
+   "needs_review": false
+  }
+ ],
+ "unresolved": []
+}

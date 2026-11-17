@@ -1,0 +1,19 @@
+{
+ "operations": [
+  {
+   "op": "add_note",
+   "household_ref": "new:1",
+   "target_id": null,
+   "fields": {
+    "name": "Greg",
+    "text": "still has my ladder"
+   },
+   "evidence": "Someone named Greg over on Birch Street still has my ladder.",
+   "confidence": 0.5,
+   "needs_review": false
+  }
+ ],
+ "unresolved": [
+  "Greg on Birch Street (not on your street; no household created)"
+ ]
+}

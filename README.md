@@ -14,6 +14,13 @@ uv pip install --python .venv/bin/python -r requirements-dev.txt
 .venv/bin/ruff check . && .venv/bin/ruff format --check .
 ```
 
+Before merging a change to the capture prompt, run the golden set against the live model (it costs a few cents, so it isn't in CI). `--record` refreshes the responses the unit tests replay:
+
+```bash
+ANTHROPIC_API_KEY=$(infisical secrets get ANTHROPIC_API_KEY --projectId 93ea4d66-6e05-4111-a245-61d3e27c9d43 --env prod --path /curbside --plain --silent) \
+  .venv/bin/python scripts/eval_capture.py --record
+```
+
 Fixtures must be synthetic. This repo is public, so no real names or addresses go in tests.
 
 ## Deploy

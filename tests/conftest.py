@@ -12,13 +12,14 @@ os.environ.update(
     TABLE_NAME="curbside-test",
     FOOTPRINTS_BUCKET="curbside-footprints-test",
     FOOTPRINTS_FETCH_FUNCTION="curbside-footprints-fetch",
+    ANTHROPIC_API_KEY_PARAM="/curbside/anthropic/api-key",
 )
 
 import boto3  # noqa: E402
 import pytest  # noqa: E402
 from moto import mock_aws  # noqa: E402
 
-from lambdas.common import dynamo, footprints  # noqa: E402
+from lambdas.common import dynamo, footprints, ssm  # noqa: E402
 from lambdas.common.accounts import create_account  # noqa: E402
 from lambdas.common.households import create_household  # noqa: E402
 from lambdas.common.maps import create_map  # noqa: E402
@@ -28,7 +29,7 @@ from lambdas.common.models import HouseholdCreate, MapCreate  # noqa: E402
 @pytest.fixture
 def table():
     with mock_aws():
-        for cached in (dynamo.db, dynamo.table, footprints.s3):
+        for cached in (dynamo.db, dynamo.table, footprints.s3, ssm.secret):
             cached.cache_clear()
         yield boto3.resource("dynamodb").create_table(
             TableName=os.environ["TABLE_NAME"],

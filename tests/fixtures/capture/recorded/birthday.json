@@ -1,0 +1,16 @@
+{
+ "operations": [
+  {
+   "op": "update_person",
+   "household_ref": "01JCAPTVRE0000000000000HH1",
+   "target_id": "01JCAPTVRE00000000000000P2",
+   "fields": {
+    "birthday": "03-03"
+   },
+   "evidence": "Theo's birthday is March 3rd.",
+   "confidence": 0.9,
+   "needs_review": false
+  }
+ ],
+ "unresolved": []
+}
