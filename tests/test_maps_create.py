@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+from botocore.exceptions import ClientError
 from conftest import call
 
 from lambdas.maps_create.handler import handler
@@ -42,3 +43,21 @@ def test_caller_without_account_needs_onboarding(table):
     status, body = call(handler, BODY, sub="sub-new")
     assert status == 404
     assert body["error"]["code"] == "needs_onboarding"
+
+
+def test_invokes_footprints_fetch_async(table, account, lambdas):
+    _, body = call(handler, BODY)
+    assert lambdas.invokes == [
+        {
+            "FunctionName": "curbside-footprints-fetch",
+            "InvocationType": "Event",
+            "Payload": {"map_id": body["data"]["id"]},
+        }
+    ]
+
+
+def test_invoke_failure_still_returns_the_map(table, account, lambdas):
+    lambdas.error = ClientError({"Error": {"Code": "TooManyRequestsException"}}, "Invoke")
+    status, body = call(handler, BODY)
+    assert status == 201
+    assert body["data"]["footprint"]["status"] == "pending"

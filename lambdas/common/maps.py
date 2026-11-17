@@ -28,9 +28,14 @@ def create_map(account_id: str, body: MapCreate) -> dict:
     meta = {
         **meta_key(map_id),
         **to_item(body.model_dump()),
-        "footprint": {"status": "pending", "version": 0, "count": 0},
         "version": 1,
         "created_at": now(),
+    }
+    meta["footprint"] = {
+        "status": "pending",
+        "version": 0,
+        "count": 0,
+        "requested_at": meta["created_at"],
     }
     member = {
         **member_key(map_id, account_id),

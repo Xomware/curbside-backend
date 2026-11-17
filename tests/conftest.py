@@ -11,6 +11,7 @@ os.environ.update(
     AWS_SECRET_ACCESS_KEY="testing",
     TABLE_NAME="curbside-test",
     FOOTPRINTS_BUCKET="curbside-footprints-test",
+    FOOTPRINTS_FETCH_FUNCTION="curbside-footprints-fetch",
 )
 
 import boto3  # noqa: E402
@@ -124,3 +125,23 @@ def dynamo_calls(table) -> list[tuple[str, dict]]:
 
 def named_attributes(params: dict) -> set[str]:
     return set(params.get("ExpressionAttributeNames", {}).values()) | set(params.get("Key", {}))
+
+
+class FakeLambda:
+    def __init__(self) -> None:
+        self.invokes: list[dict] = []
+        self.error: Exception | None = None
+
+    def invoke(self, **kwargs: Any) -> dict:
+        if self.error:
+            raise self.error
+        self.invokes.append({**kwargs, "Payload": json.loads(kwargs["Payload"])})
+        return {"StatusCode": 202}
+
+
+@pytest.fixture(autouse=True)
+def lambdas(monkeypatch) -> FakeLambda:
+    """Async invokes of footprints_fetch; moto would need Docker to run them."""
+    fake = FakeLambda()
+    monkeypatch.setattr(footprints, "_lambda", lambda: fake)
+    return fake

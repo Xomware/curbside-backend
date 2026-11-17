@@ -30,3 +30,8 @@ class NotFoundError(CurbsideError):
 class ConflictError(CurbsideError):
     status = 409
     code = "version_conflict"
+
+
+class RateLimitError(CurbsideError):
+    status = 429
+    code = "rate_limited"
