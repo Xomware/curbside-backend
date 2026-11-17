@@ -128,6 +128,15 @@ def update_versioned(key: dict, fields: dict, version: int, entity: str) -> dict
         raise ConflictError(f"{entity} was changed by someone else; refetch it") from e
 
 
+def delete_existing(key: dict, entity: str) -> None:
+    try:
+        table().delete_item(Key=key, ConditionExpression="attribute_exists(pk)")
+    except ClientError as e:
+        if e.response["Error"]["Code"] != "ConditionalCheckFailedException":
+            raise
+        raise NotFoundError(f"{entity} not found", code=f"{entity.lower()}_not_found") from e
+
+
 def to_item(data: dict) -> dict:
     """boto3 rejects float; DynamoDB numbers go in as Decimal."""
     return json.loads(json.dumps(data), parse_float=Decimal)
