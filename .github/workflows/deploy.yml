@@ -1,0 +1,27 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "lambdas/**"
+      - "requirements.txt"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+    inputs:
+      lambdas:
+        description: Comma-separated lambda folders to deploy. Empty rebuilds the layer and deploys all.
+        default: ''
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    uses: Xomware/github-actions/.github/workflows/deploy-lambda-python.yml@v1
+    with:
+      app: curbside
+      python-version: '3.12'
+      test-command: pip install -q -r requirements-dev.txt && python -m pytest
+      lambdas: ${{ inputs.lambdas }}
