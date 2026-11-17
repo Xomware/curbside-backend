@@ -1,5 +1,6 @@
-"""GET /maps/{mapId}/households/{hhId} - A household with its people and pets.
+"""GET /maps/{mapId}/households/{hhId} - A household with people, pets and notes.
 
+`private.notes` holds the newest 50, newest first.
 404 `household_not_found` if the map has no such household.
 Caller identity: `requestContext.authorizer.jwt.claims.sub`.
 """
@@ -12,6 +13,7 @@ from lambdas.common.auth import get_account_id, require_member
 from lambdas.common.dynamo import query_prefix
 from lambdas.common.errors import NotFoundError
 from lambdas.common.households import assemble
+from lambdas.common.notes import recent_notes
 from lambdas.common.responses import handle_errors, path_id, success_response
 
 HANDLER = "households_get"
@@ -25,4 +27,6 @@ def handler(event: dict, context: Any) -> dict:
     households = assemble(query_prefix(f"MAP#{map_id}", f"HH#{hh_id}"))
     if not households:
         raise NotFoundError("Household not found", code="household_not_found")
-    return success_response(households[0])
+    household = households[0]
+    household["private"]["notes"] = recent_notes(map_id, hh_id)
+    return success_response(household)

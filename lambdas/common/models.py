@@ -122,3 +122,10 @@ class PetUpdate(Patch):
     name: str | None = Field(default=None, min_length=1, max_length=80)
     species: str | None = Field(default=None, max_length=40)
     notes: str | None = Field(default=None, max_length=1000)
+
+
+class NoteCreate(BaseModel):
+    model_config = _STRICT
+
+    text: str = Field(min_length=1, max_length=2000)
+    source: Literal["voice", "text", "manual"] = "manual"
