@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import ClassVar, Self
+from datetime import date
+from typing import ClassVar, Literal, Self
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 
@@ -78,3 +79,46 @@ class HouseholdUpdate(Patch):
     lng: float | None = Field(default=None, ge=-180, le=180)
     building_id: str | None = Field(default=None, max_length=100)
     last_talked_at: AwareDatetime | None = None
+
+
+_BIRTHDAY = r"^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$"
+_YEAR = {"ge": 1900, "le": date.today().year}
+
+
+class PersonCreate(BaseModel):
+    model_config = _STRICT
+
+    name: str = Field(min_length=1, max_length=80)
+    role: Literal["adult", "kid"]
+    birth_year: int | None = Field(default=None, **_YEAR)
+    # "About 6" in a capture becomes current year - 6 with this set.
+    birth_year_approx: bool = False
+    birthday: str | None = Field(default=None, pattern=_BIRTHDAY)
+    notes: str | None = Field(default=None, max_length=1000)
+
+
+class PersonUpdate(Patch):
+    nullable = frozenset({"birth_year", "birthday", "notes"})
+
+    name: str | None = Field(default=None, min_length=1, max_length=80)
+    role: Literal["adult", "kid"] | None = None
+    birth_year: int | None = Field(default=None, **_YEAR)
+    birth_year_approx: bool | None = None
+    birthday: str | None = Field(default=None, pattern=_BIRTHDAY)
+    notes: str | None = Field(default=None, max_length=1000)
+
+
+class PetCreate(BaseModel):
+    model_config = _STRICT
+
+    name: str = Field(min_length=1, max_length=80)
+    species: str | None = Field(default=None, max_length=40)
+    notes: str | None = Field(default=None, max_length=1000)
+
+
+class PetUpdate(Patch):
+    nullable = frozenset({"species", "notes"})
+
+    name: str | None = Field(default=None, min_length=1, max_length=80)
+    species: str | None = Field(default=None, max_length=40)
+    notes: str | None = Field(default=None, max_length=1000)
