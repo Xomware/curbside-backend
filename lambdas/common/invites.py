@@ -48,7 +48,9 @@ def get_invite(code: str) -> tuple[dict, dict]:
     if not invite or invite["ttl"] <= time.time():
         raise _not_found()
     meta = get_item(meta_key(invite["map_id"]))
-    if not meta:
+    # An inviter who has left the map, or deleted their account, no longer vouches for it.
+    inviter = get_item(member_key(invite["map_id"], invite["created_by"]), ("pk",))
+    if not meta or not inviter:
         raise _not_found()
     return invite, meta
 

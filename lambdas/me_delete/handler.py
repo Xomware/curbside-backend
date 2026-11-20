@@ -1,5 +1,7 @@
 """DELETE /me - Hard-delete the caller's account, its maps and every linked sign-in.
 
+A map shared with others is not deleted: the longest-standing member becomes its owner.
+
 Needs a sign-in in the last 10 minutes, from Apple if an Apple sign-in is linked,
 else 403 `reauth_required`. Apple's revoke endpoint answers 200 for an expired
 token too, so this is how the revoked token is known to be live.
@@ -20,7 +22,7 @@ from lambdas.common.auth import get_account_id, get_auth_time, get_provider, get
 from lambdas.common.cognito import delete_users, find_user, user_attribute
 from lambdas.common.dynamo import delete_keys, member_key, query_prefix
 from lambdas.common.errors import ForbiddenError
-from lambdas.common.maps import delete_map
+from lambdas.common.maps import delete_map, hand_off
 from lambdas.common.responses import handle_errors, success_response
 
 HANDLER = "me_delete"
@@ -47,10 +49,10 @@ def handler(event: dict, context: Any) -> dict:
     apple_revoke = _revoke_apple(sub) if has_apple else "none"
     for m in query_prefix(f"ACCT#{account_id}", "MAP#", gsi=True):
         map_id = m["pk"].removeprefix("MAP#")
-        if m["role"] == "owner":
-            delete_map(map_id)
-        else:
+        if m["role"] != "owner":
             delete_keys([member_key(map_id, account_id)])
+        elif not hand_off(map_id, account_id):
+            delete_map(map_id)
     subs = sorted({i["sub"] for i in identities} | {sub})
     delete_users(subs)
     delete_account_items(account_id, subs, sub)

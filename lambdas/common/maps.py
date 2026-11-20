@@ -66,6 +66,39 @@ def delete_map(map_id: str) -> None:
     delete_keys(sorted(keys, key=lambda k: k["sk"].startswith("MEMBER#")))
 
 
+def hand_off(map_id: str, owner_id: str) -> bool:
+    """Promotes the longest-standing other member to owner and drops `owner_id`.
+
+    False, changing nothing, when nobody else is on the map.
+
+    A shared street belongs to everyone on it, so an owner deleting their account
+    passes it on rather than taking it from the people still living there.
+    """
+    others = [
+        m for m in query_prefix(f"MAP#{map_id}", "MEMBER#") if m["sk"] != f"MEMBER#{owner_id}"
+    ]
+    if not others:
+        return False
+    heir = min(others, key=lambda m: m["created_at"])
+    name = table().name
+    table().meta.client.transact_write_items(
+        TransactItems=[
+            {
+                "Update": {
+                    "TableName": name,
+                    "Key": {"pk": heir["pk"], "sk": heir["sk"]},
+                    "UpdateExpression": "SET #role = :owner",
+                    "ConditionExpression": "attribute_exists(pk)",
+                    "ExpressionAttributeNames": {"#role": "role"},
+                    "ExpressionAttributeValues": {":owner": "owner"},
+                }
+            },
+            {"Delete": {"TableName": name, "Key": member_key(map_id, owner_id)}},
+        ]
+    )
+    return True
+
+
 def list_members(map_id: str) -> list[dict]:
     """Owner first, then by join time, each with the display name from their PROFILE."""
     members = query_prefix(f"MAP#{map_id}", "MEMBER#")
