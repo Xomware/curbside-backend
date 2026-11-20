@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from lambdas.common.dynamo import (
+    acct_key,
     batch_get,
     delete_keys,
     member_key,
@@ -63,3 +64,20 @@ def delete_map(map_id: str) -> None:
     delete_footprints(map_id)
     keys = [{"pk": i["pk"], "sk": i["sk"]} for i in query_prefix(f"MAP#{map_id}")]
     delete_keys(sorted(keys, key=lambda k: k["sk"].startswith("MEMBER#")))
+
+
+def list_members(map_id: str) -> list[dict]:
+    """Owner first, then by join time, each with the display name from their PROFILE."""
+    members = query_prefix(f"MAP#{map_id}", "MEMBER#")
+    ids = [m["sk"].removeprefix("MEMBER#") for m in members]
+    names = {p["account_id"]: p["display_name"] for p in batch_get([acct_key(a) for a in ids])}
+    rows = [
+        {
+            "account_id": a,
+            "display_name": names.get(a),
+            "role": m["role"],
+            "created_at": m["created_at"],
+        }
+        for a, m in zip(ids, members, strict=True)
+    ]
+    return sorted(rows, key=lambda r: (r["role"] != "owner", r["created_at"]))

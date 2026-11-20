@@ -150,3 +150,8 @@ def new_id() -> str:
     """ULID: 48-bit millisecond timestamp + 80 random bits, Crockford base32."""
     n = (time.time_ns() // 1_000_000) << 80 | secrets.randbits(80)
     return "".join(_CROCKFORD[(n >> shift) & 31] for shift in range(125, -1, -5))
+
+
+def new_code() -> str:
+    """10 Crockford base32 chars, 50 random bits."""
+    return "".join(secrets.choice(_CROCKFORD) for _ in range(10))
