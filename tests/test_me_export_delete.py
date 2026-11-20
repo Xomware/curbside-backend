@@ -294,18 +294,18 @@ def test_delete_leaves_shared_maps_and_only_drops_the_membership(owner, stranger
     }
 
 
-def test_owner_deleting_account_removes_members_from_the_map(owner, stranger, table, apple_api):
+def test_owner_deleting_account_hands_a_shared_map_to_the_next_member(
+    owner, stranger, table, bucket, apple_api
+):
     apple_api()
     share(owner, stranger)
 
     assert call(delete, **as_apple(owner))[0] == 200
 
-    assert not [i for i in table.scan()["Items"] if i["pk"] == f"MAP#{owner['map']}"]
-    assert not table.query(
-        IndexName="gsi1",
-        KeyConditionExpression="gsi1pk = :a AND gsi1sk = :m",
-        ExpressionAttributeValues={
-            ":a": f"ACCT#{stranger['account']}",
-            ":m": f"MAP#{owner['map']}",
-        },
-    )["Items"]
+    items = {i["sk"]: i for i in table.scan()["Items"] if i["pk"] == f"MAP#{owner['map']}"}
+    assert "META" in items
+    assert f"MEMBER#{owner['account']}" not in items
+    assert items[f"MEMBER#{stranger['account']}"]["role"] == "owner"
+    assert [k for k in items if k.startswith("HH#")]
+    listed = boto3.client("s3").list_objects_v2(Bucket=bucket, Prefix=f"footprints/{owner['map']}/")
+    assert listed["KeyCount"] == 1

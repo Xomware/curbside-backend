@@ -148,3 +148,11 @@ def test_concurrent_accept_by_someone_else_is_404(table, map_id, code, guest):
     with pytest.raises(NotFoundError):
         invites.accept_invite(code, map_id, guest)
     assert joined(table, map_id, guest) is None
+
+
+def test_invite_from_someone_no_longer_on_the_map_is_404(table, map_id, code, guest, account):
+    table.delete_item(Key={"pk": f"MAP#{map_id}", "sk": f"MEMBER#{account}"})
+
+    for handler, method in ((get, "GET"), (accept, "POST")):
+        status, body = call(handler, sub=GUEST, path={"code": code})
+        assert (status, body["error"]["code"]) == (404, "invite_not_found"), method
