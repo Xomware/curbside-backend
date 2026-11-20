@@ -66,6 +66,15 @@ def get_account(account_id: str) -> dict:
     return {**_profile(get_item(acct_key(account_id))), "identities": identities}
 
 
+def rename_account(account_id: str, display_name: str) -> None:
+    table().update_item(
+        Key=acct_key(account_id),
+        UpdateExpression="SET display_name = :n",
+        ConditionExpression="attribute_exists(pk)",
+        ExpressionAttributeValues={":n": display_name},
+    )
+
+
 def link_identity(account_id: str, sub: str, provider: str) -> dict:
     existing = get_item(ident_key(sub))
     if existing:

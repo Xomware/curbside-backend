@@ -17,6 +17,12 @@ class AccountCreate(BaseModel):
     display_name: str = Field(min_length=1, max_length=80)
 
 
+class AccountUpdate(BaseModel):
+    model_config = _STRICT
+
+    display_name: str = Field(min_length=1, max_length=80)
+
+
 class LinkRequest(BaseModel):
     id_token: str = Field(min_length=1, max_length=8192)
 

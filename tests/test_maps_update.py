@@ -3,6 +3,8 @@ from __future__ import annotations
 import pytest
 from conftest import call
 
+from lambdas.common.accounts import create_account
+from lambdas.common.invites import accept_invite, create_invite
 from lambdas.maps_update.handler import handler
 
 
@@ -40,3 +42,14 @@ def test_missing_map_is_404(table, map_id):
     status, body = call(handler, {"version": 1, "name": "Mine"}, path={"mapId": "0" * 26})
     assert status == 404
     assert body["error"]["code"] == "map_not_found"
+
+
+def test_member_cannot_update(table, map_id, account):
+    guest = create_account("sub-guest", "google", "Housemate")[0]["account_id"]
+    accept_invite(create_invite(map_id, account)["code"], map_id, guest)
+
+    status, body = call(
+        handler, {"version": 1, "name": "Mine"}, path={"mapId": map_id}, sub="sub-guest"
+    )
+
+    assert (status, body["error"]["code"]) == (403, "owner_only")

@@ -14,6 +14,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from lambdas.common import apple
 from lambdas.common.accounts import create_account, link_identity
 from lambdas.common.households import create_child, create_household
+from lambdas.common.invites import accept_invite, create_invite
 from lambdas.common.maps import create_map
 from lambdas.common.models import HouseholdCreate, MapCreate, NoteCreate
 from lambdas.common.notes import create_note
@@ -109,6 +110,12 @@ def stranger(pool, bucket) -> dict:
     account = create_account(sub, "google", "Stranger")[0]["account_id"]
     map_id = create_map(account, MapCreate(name="Oak St", center={"lat": 41, "lng": -74}))["id"]
     return {"account": account, "sub": sub, "map": map_id}
+
+
+def share(owner_map: dict, guest: dict) -> None:
+    """guest joins owner_map's map as a member."""
+    code = create_invite(owner_map["map"], owner_map["account"])["code"]
+    accept_invite(code, owner_map["map"], guest["account"])
 
 
 def as_apple(owner: dict, age_s: int = 0) -> dict:
@@ -261,3 +268,44 @@ def test_retry_after_a_crash_between_identity_passes(
     assert call(delete, **as_apple(owner))[0] == 200
     assert not [i for i in table.scan()["Items"] if owner["account"] in str(i)]
     assert not [i for i in table.scan()["Items"] if i["pk"].startswith("IDENT#")]
+
+
+def test_export_includes_maps_shared_with_the_caller(owner, stranger):
+    share(stranger, owner)
+
+    _, body = call(export, sub=owner["google"])
+
+    roles = {m["map"]["id"]: m["map"]["role"] for m in body["data"]["maps"]}
+    assert roles == {owner["map"]: "owner", stranger["map"]: "member"}
+
+
+def test_delete_leaves_shared_maps_and_only_drops_the_membership(owner, stranger, table, apple_api):
+    apple_api()
+    share(stranger, owner)
+
+    assert call(delete, **as_apple(owner))[0] == 200
+
+    left = {
+        (i["pk"], i["sk"]) for i in table.scan()["Items"] if i["pk"] == f"MAP#{stranger['map']}"
+    }
+    assert left == {
+        (f"MAP#{stranger['map']}", "META"),
+        (f"MAP#{stranger['map']}", f"MEMBER#{stranger['account']}"),
+    }
+
+
+def test_owner_deleting_account_removes_members_from_the_map(owner, stranger, table, apple_api):
+    apple_api()
+    share(owner, stranger)
+
+    assert call(delete, **as_apple(owner))[0] == 200
+
+    assert not [i for i in table.scan()["Items"] if i["pk"] == f"MAP#{owner['map']}"]
+    assert not table.query(
+        IndexName="gsi1",
+        KeyConditionExpression="gsi1pk = :a AND gsi1sk = :m",
+        ExpressionAttributeValues={
+            ":a": f"ACCT#{stranger['account']}",
+            ":m": f"MAP#{owner['map']}",
+        },
+    )["Items"]

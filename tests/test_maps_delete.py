@@ -4,6 +4,7 @@ import boto3
 from conftest import call
 
 from lambdas.common.accounts import create_account
+from lambdas.common.invites import accept_invite, create_invite
 from lambdas.maps_delete.handler import handler
 
 
@@ -28,4 +29,14 @@ def test_non_member_cannot_delete(table, bucket, map_id):
     create_account("sub-other", "apple", "Other")
     status, _ = call(handler, path={"mapId": map_id}, sub="sub-other")
     assert status == 404
+    assert table.get_item(Key={"pk": f"MAP#{map_id}", "sk": "META"}).get("Item")
+
+
+def test_member_cannot_delete(table, bucket, map_id, account):
+    guest = create_account("sub-guest", "google", "Housemate")[0]["account_id"]
+    accept_invite(create_invite(map_id, account)["code"], map_id, guest)
+
+    status, body = call(handler, path={"mapId": map_id}, sub="sub-guest")
+
+    assert (status, body["error"]["code"]) == (403, "owner_only")
     assert table.get_item(Key={"pk": f"MAP#{map_id}", "sk": "META"}).get("Item")

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from lambdas.common.dynamo import get_item, ident_key, member_key
-from lambdas.common.errors import AuthError, NotFoundError
+from lambdas.common.errors import AuthError, ForbiddenError, NotFoundError
 
 # Cognito names federated users "<IdP provider_name>_<IdP sub>"; the provider
 # names are set in curbside-infrastructure cognito_idps.tf.
@@ -50,3 +50,10 @@ def require_member(map_id: str, account_id: str) -> dict:
     if not item:
         raise NotFoundError("Map not found", code="map_not_found")
     return item
+
+
+def require_owner(map_id: str, account_id: str) -> dict:
+    member = require_member(map_id, account_id)
+    if member["role"] != "owner":
+        raise ForbiddenError("Only the map's owner can do this", code="owner_only")
+    return member
