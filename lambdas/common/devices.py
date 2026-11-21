@@ -7,7 +7,7 @@ import re
 
 from botocore.exceptions import ClientError
 
-from lambdas.common.dynamo import get_item, now, table
+from lambdas.common.dynamo import get_item, now, query_prefix, table
 from lambdas.common.errors import ValidationError
 
 _TOKEN = re.compile("[0-9a-f]{64,200}")
@@ -58,3 +58,7 @@ def delete_device(account_id: str, token: str) -> None:
         if e.response["Error"]["Code"] != "ConditionalCheckFailedException":
             raise
         # Another account has registered the token since; it's theirs now.
+
+
+def list_devices(account_id: str) -> list[dict]:
+    return query_prefix(f"ACCT#{account_id}", "DEVICE#")
