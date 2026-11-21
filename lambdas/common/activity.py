@@ -49,11 +49,12 @@ def notify(
     }
     optional = {"map_id": map_id, "map_name": map_name, "household_label": household_label}
     fields |= {k: v for k, v in optional.items() if v is not None}
+    # PutItem per recipient, not a batch: every role that notifies already has
+    # PutItem, and a street has a handful of members.
     try:
-        with table().batch_writer() as batch:
-            for r in recipients:
-                sk = f"ACTIVITY#{fields['created_at']}#{new_id()}"
-                batch.put_item(Item={"pk": f"ACCT#{r}", "sk": sk, **fields})
+        for r in recipients:
+            sk = f"ACTIVITY#{fields['created_at']}#{new_id()}"
+            table().put_item(Item={"pk": f"ACCT#{r}", "sk": sk, **fields})
     except ClientError as e:
         log.error(
             "activity_write_failed",

@@ -108,8 +108,8 @@ def test_feed_is_newest_first_and_capped(table, account):
 
 def test_a_failed_activity_write_does_not_fail_the_request(table, map_id, guest, monkeypatch):
     class Broken:
-        def batch_writer(self):
-            raise ClientError({"Error": {"Code": "AccessDeniedException"}}, "BatchWriteItem")
+        def put_item(self, **_):
+            raise ClientError({"Error": {"Code": "AccessDeniedException"}}, "PutItem")
 
     monkeypatch.setattr(activity, "table", Broken)
     body = {"label": "Mossbottoms", "lat": 40.0, "lng": -75.0}
