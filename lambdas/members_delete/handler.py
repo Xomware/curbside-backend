@@ -1,6 +1,7 @@
 """DELETE /maps/{mapId}/members/{accountId} - Remove a member, or leave the map.
 
-The owner may remove anyone else; a member may remove only themself.
+The owner may remove anyone else, who gets a `removed_from_street` activity;
+a member may remove only themself.
 Returns {"removed": true}. 409 `owner_cannot_leave` when the owner targets themself,
 403 `owner_only` when a member targets someone else, 404 `member_not_found` if the
 target isn't in the map.
@@ -11,9 +12,11 @@ from __future__ import annotations
 
 from typing import Any
 
+from lambdas.common.activity import notify
 from lambdas.common.auth import get_account_id, require_member
 from lambdas.common.dynamo import delete_existing, member_key
 from lambdas.common.errors import ConflictError, ForbiddenError
+from lambdas.common.maps import map_name
 from lambdas.common.responses import handle_errors, path_id, success_response
 
 HANDLER = "members_delete"
@@ -31,4 +34,6 @@ def handler(event: dict, context: Any) -> dict:
     if target != account_id and not is_owner:
         raise ForbiddenError("Only the map's owner can remove members", code="owner_only")
     delete_existing(member_key(map_id, target), "Member")
+    if target != account_id:
+        notify([target], "removed_from_street", account_id, map_id, map_name(map_id))
     return success_response({"removed": True})
