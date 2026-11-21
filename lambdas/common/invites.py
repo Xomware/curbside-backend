@@ -12,7 +12,7 @@ from lambdas.common.dynamo import get_item, member_key, meta_key, new_code, now,
 from lambdas.common.errors import NotFoundError
 
 INVITE_TTL = timedelta(days=7)
-_CODE = re.compile("[0-9A-HJKMNP-TV-Z]{10}")
+CODE = re.compile("[0-9A-HJKMNP-TV-Z]{10}")
 
 
 def invite_key(code: str) -> dict:
@@ -44,7 +44,7 @@ def get_invite(code: str) -> tuple[dict, dict]:
     Checks expiry itself: TTL deletes can lag by days. An invite whose map was
     deleted is dead too.
     """
-    invite = get_item(invite_key(code)) if _CODE.fullmatch(code) else None
+    invite = get_item(invite_key(code)) if CODE.fullmatch(code) else None
     if not invite or invite["ttl"] <= time.time():
         raise _not_found()
     meta = get_item(meta_key(invite["map_id"]))

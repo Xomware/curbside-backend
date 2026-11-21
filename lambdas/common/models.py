@@ -164,6 +164,12 @@ class CaptureParse(BaseModel):
     nearby_household_ids: list[Ulid] = Field(default_factory=list, max_length=8)
 
 
+class MemberAdd(BaseModel):
+    model_config = _STRICT
+
+    account_id: Ulid
+
+
 class HouseholdDraft(BaseModel):
     """A household as a capture names it; the client adds lat/lng before apply."""
 

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from botocore.exceptions import ClientError
+
 from lambdas.common.activity import notify
 from lambdas.common.dynamo import (
     acct_key,
@@ -16,6 +18,7 @@ from lambdas.common.dynamo import (
     table,
     to_item,
 )
+from lambdas.common.errors import NotFoundError
 from lambdas.common.footprints import delete_footprints
 from lambdas.common.models import MapCreate
 
@@ -109,6 +112,45 @@ def hand_off(map_id: str, owner_id: str) -> bool:
     heir_id = heir["sk"].removeprefix("MEMBER#")
     notify([heir_id], "street_handed_to_you", owner_id, map_id, map_name(map_id))
     return True
+
+
+def add_member(map_id: str, account_id: str) -> dict:
+    """Puts a "member" MEMBER item if the map exists and they aren't in it; returns theirs."""
+    member = {
+        **member_key(map_id, account_id),
+        "gsi1pk": f"ACCT#{account_id}",
+        "gsi1sk": f"MAP#{map_id}",
+        "role": "member",
+        "created_at": now(),
+    }
+    name = table().name
+    try:
+        table().meta.client.transact_write_items(
+            TransactItems=[
+                {
+                    "Put": {
+                        "TableName": name,
+                        "Item": member,
+                        "ConditionExpression": "attribute_not_exists(pk)",
+                    }
+                },
+                {
+                    "ConditionCheck": {
+                        "TableName": name,
+                        "Key": meta_key(map_id),
+                        "ConditionExpression": "attribute_exists(pk)",
+                    }
+                },
+            ]
+        )
+    except ClientError as e:
+        if e.response["Error"]["Code"] != "TransactionCanceledException":
+            raise
+        existing = get_item(member_key(map_id, account_id))
+        if not existing:
+            raise NotFoundError("Map not found", code="map_not_found") from e
+        return existing
+    return member
 
 
 def list_members(map_id: str) -> list[dict]:

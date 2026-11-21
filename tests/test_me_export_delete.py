@@ -13,6 +13,8 @@ from cryptography.hazmat.primitives.asymmetric import ec
 
 from lambdas.common import apple
 from lambdas.common.accounts import create_account, link_identity
+from lambdas.common.devices import put_device
+from lambdas.common.friends import make_friends
 from lambdas.common.households import create_child, create_household
 from lambdas.common.invites import accept_invite, create_invite
 from lambdas.common.maps import create_map
@@ -309,3 +311,17 @@ def test_owner_deleting_account_hands_a_shared_map_to_the_next_member(
     assert [k for k in items if k.startswith("HH#")]
     listed = boto3.client("s3").list_objects_v2(Bucket=bucket, Prefix=f"footprints/{owner['map']}/")
     assert listed["KeyCount"] == 1
+
+
+def test_delete_removes_friend_edges_and_device_tokens(owner, stranger, table, apple_api):
+    apple_api()
+    me, them = owner["account"], stranger["account"]
+    make_friends(me, them)
+    token = "ab" * 32
+    put_device(me, token, "ios", "production")
+
+    call(delete, **as_apple(owner))
+
+    left = {(i["pk"], i["sk"]) for i in table.scan()["Items"]}
+    assert (f"ACCT#{them}", f"FRIEND#{me}") not in left
+    assert (f"DEVICE#{token}", "DEVICE") not in left

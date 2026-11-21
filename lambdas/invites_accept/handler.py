@@ -2,7 +2,8 @@
 
 Returns the map as GET /maps lists it. A caller already in the map gets it back
 with their own role, and the invite stays unspent for whoever it was meant for.
-Every other member gets a `member_joined` activity.
+Every other member gets a `member_joined` activity, and the caller and the
+inviter become friends.
 404 `invite_not_found` if missing, expired, spent or its map is gone.
 Caller identity: `requestContext.authorizer.jwt.claims.sub`.
 """
@@ -14,6 +15,7 @@ from typing import Any
 from lambdas.common.activity import notify
 from lambdas.common.auth import get_account_id
 from lambdas.common.dynamo import get_item, member_key
+from lambdas.common.friends import make_friends
 from lambdas.common.invites import accept_invite, get_invite
 from lambdas.common.maps import map_view, member_ids
 from lambdas.common.responses import handle_errors, success_response
@@ -31,5 +33,6 @@ def handler(event: dict, context: Any) -> dict:
     if existing:
         return success_response(map_view(meta, existing["role"]))
     accept_invite(code, map_id, account_id)
+    make_friends(account_id, invite["created_by"])
     notify(member_ids(map_id), "member_joined", account_id, map_id, meta["name"])
     return success_response(map_view(meta, "member"))
