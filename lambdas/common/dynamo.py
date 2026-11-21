@@ -78,6 +78,20 @@ def query_prefix(pk: str, sk_prefix: str = "", gsi: bool = False) -> list[dict]:
         kwargs["ExclusiveStartKey"] = resp["LastEvaluatedKey"]
 
 
+def scan(attrs: tuple[str, ...]) -> list[dict]:
+    kwargs: dict = {
+        "ProjectionExpression": ", ".join(f"#{a}" for a in attrs),
+        "ExpressionAttributeNames": {f"#{a}": a for a in attrs},
+    }
+    items: list[dict] = []
+    while True:
+        resp = table().scan(**kwargs)
+        items += resp["Items"]
+        if "LastEvaluatedKey" not in resp:
+            return items
+        kwargs["ExclusiveStartKey"] = resp["LastEvaluatedKey"]
+
+
 def batch_get(keys: list[dict]) -> list[dict]:
     items: list[dict] = []
     name = table().name
