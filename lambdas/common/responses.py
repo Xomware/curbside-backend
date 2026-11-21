@@ -36,6 +36,10 @@ def success_response(data: Any, status: int = 200, meta: dict | None = None) -> 
     return _response(status, {"data": data, "error": None, "meta": meta or {}})
 
 
+def no_content() -> dict:
+    return {"statusCode": 204, "headers": {}, "body": ""}
+
+
 def error_response(status: int, code: str, message: str, details: Any = None) -> dict:
     error = {"code": code, "message": message}
     if details is not None:

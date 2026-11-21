@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from lambdas.common.activity import notify
 from lambdas.common.dynamo import (
     acct_key,
     batch_get,
     delete_keys,
+    get_item,
     member_key,
     meta_key,
     new_id,
@@ -18,6 +20,14 @@ from lambdas.common.footprints import delete_footprints
 from lambdas.common.models import MapCreate
 
 _FIELDS = ("name", "center", "radius_m", "footprint", "version", "created_at")
+
+
+def map_name(map_id: str) -> str:
+    return get_item(meta_key(map_id), ("name",))["name"]
+
+
+def member_ids(map_id: str) -> list[str]:
+    return [m["sk"].removeprefix("MEMBER#") for m in query_prefix(f"MAP#{map_id}", "MEMBER#")]
 
 
 def map_view(meta: dict, role: str) -> dict:
@@ -96,6 +106,8 @@ def hand_off(map_id: str, owner_id: str) -> bool:
             {"Delete": {"TableName": name, "Key": member_key(map_id, owner_id)}},
         ]
     )
+    heir_id = heir["sk"].removeprefix("MEMBER#")
+    notify([heir_id], "street_handed_to_you", owner_id, map_id, map_name(map_id))
     return True
 
 

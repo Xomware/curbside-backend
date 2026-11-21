@@ -49,6 +49,13 @@ class Patch(BaseModel):
         return self.model_dump(mode="json", exclude_unset=True, exclude={"version"})
 
 
+class DeviceRegister(BaseModel):
+    model_config = _STRICT
+
+    platform: Literal["ios"]
+    env: Literal["sandbox", "production"]
+
+
 class Point(BaseModel):
     model_config = _STRICT
 
