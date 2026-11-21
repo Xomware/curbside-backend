@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from lambdas.common.dynamo import get_item, ident_key, member_key
+from lambdas.common.dynamo import acct_key, get_item, ident_key, member_key
 from lambdas.common.errors import AuthError, ForbiddenError, NotFoundError
 
 # Cognito names federated users "<IdP provider_name>_<IdP sub>"; the provider
@@ -57,3 +57,10 @@ def require_owner(map_id: str, account_id: str) -> dict:
     if member["role"] != "owner":
         raise ForbiddenError("Only the map's owner can do this", code="owner_only")
     return member
+
+
+def require_admin(account_id: str) -> None:
+    # Set by hand in the console; nothing in the API writes it.
+    profile = get_item(acct_key(account_id), ("is_admin",))
+    if not profile or profile.get("is_admin") is not True:
+        raise ForbiddenError("Admins only", code="admin_only")

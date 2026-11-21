@@ -63,7 +63,12 @@ def get_account(account_id: str) -> dict:
         {k: item[k] for k in ("sub", "provider", "created_at")}
         for item in query_prefix(f"ACCT#{account_id}", "IDENT#")
     ]
-    return {**_profile(get_item(acct_key(account_id))), "identities": identities}
+    profile = get_item(acct_key(account_id))
+    return {
+        **_profile(profile),
+        "is_admin": profile.get("is_admin") is True,
+        "identities": identities,
+    }
 
 
 def rename_account(account_id: str, display_name: str) -> None:
