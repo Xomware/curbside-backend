@@ -1,7 +1,7 @@
 """POST /maps/{mapId}/households/{hhId}/people - Add a person to a household. 201.
 
 Body: {"name": "1-80", "role": "adult|kid", "birth_year"?, "birth_year_approx"?,
-       "birthday"?: "MM-DD", "notes"?: "<=1000"}
+       "birthday"?: "MM-DD", "notes"?: "<=1000", "phone"?: "<=40", "email"?: "<=254, with @"}
 404 `household_not_found` if the household doesn't exist (checked in the same transaction).
 Caller identity: `requestContext.authorizer.jwt.claims.sub`.
 """

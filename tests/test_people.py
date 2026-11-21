@@ -40,12 +40,29 @@ def test_create_on_missing_household_is_404_and_writes_nothing(table, map_id):
         {**KID, "birthday": "13-01"},
         {**KID, "birth_year": 1800},
         {"role": "kid"},
-        {**KID, "email": "x@example.com"},
+        {**KID, "email": "not-an-email"},
+        {**KID, "email": "a@" + "x" * 253},
+        {**KID, "phone": "5" * 41},
+        {**KID, "fax": "555-0100"},
     ],
 )
 def test_invalid_create_is_400(table, map_id, hh_id, bad):
     status, _ = add(map_id, hh_id, bad)
     assert status == 400
+
+
+def test_contacts_round_trip_and_clear(table, map_id, hh_id):
+    contacts = {"phone": "+1 555-0100", "email": "sam@example.com"}
+    status, body = add(map_id, hh_id, {**KID, **contacts})
+    assert status == 201
+    person = body["data"]
+    assert (person["phone"], person["email"]) == (contacts["phone"], contacts["email"])
+
+    path = {"mapId": map_id, "hhId": hh_id, "personId": person["id"]}
+    status, body = call(update, {"version": 1, "phone": None, "email": "s@example.org"}, path=path)
+    assert status == 200
+    assert "phone" not in body["data"]
+    assert body["data"]["email"] == "s@example.org"
 
 
 def test_update_is_versioned(table, map_id, hh_id):

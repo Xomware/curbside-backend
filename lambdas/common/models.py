@@ -105,10 +105,12 @@ class PersonCreate(BaseModel):
     birth_year_approx: bool = False
     birthday: str | None = Field(default=None, pattern=_BIRTHDAY)
     notes: str | None = Field(default=None, max_length=1000)
+    phone: str | None = Field(default=None, max_length=40)
+    email: str | None = Field(default=None, max_length=254, pattern="@")
 
 
 class PersonUpdate(Patch):
-    nullable = frozenset({"birth_year", "birthday", "notes"})
+    nullable = frozenset({"birth_year", "birthday", "notes", "phone", "email"})
 
     name: str | None = Field(default=None, min_length=1, max_length=80)
     role: Literal["adult", "kid"] | None = None
@@ -116,6 +118,8 @@ class PersonUpdate(Patch):
     birth_year_approx: bool | None = None
     birthday: str | None = Field(default=None, pattern=_BIRTHDAY)
     notes: str | None = Field(default=None, max_length=1000)
+    phone: str | None = Field(default=None, max_length=40)
+    email: str | None = Field(default=None, max_length=254, pattern="@")
 
 
 class PetCreate(BaseModel):
